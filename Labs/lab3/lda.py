@@ -1,3 +1,5 @@
+import os
+
 import numpy
 import sklearn.datasets 
 
@@ -55,6 +57,36 @@ def compute_lda_JointDiag(D, L, m):
 def apply_lda(U, D):
     return U.T @ D
 
+def plot_scatter(D, L):
+
+    D, L = load_iris()
+    
+    # 1. Calcoliamo la matrice di proiezione U per le prime 2 direzioni (usiamo geig)
+    U = compute_lda_geig(D, L, m = 2)
+    
+    # 2. Applichiamo la LDA proiettando il dataset D sulle nuove direzioni
+    DP = apply_lda(U, D)
+    
+    if not os.path.exists('plots'):
+        os.makedirs('plots')
+    
+    # 3. Creiamo il grafico scatter separando le tre classi (0, 1, 2)
+    plt.figure()
+    plt.xlabel('Prima Direzione (LDA1)')
+    plt.ylabel('Seconda Direzione (LDA2)')
+    
+    # L==0: Setosa, L==1: Versicolor, L==2: Virginica
+    plt.scatter(DP[0, L==0], DP[1, L==0], label='Setosa')
+    plt.scatter(DP[0, L==1], DP[1, L==1], label='Versicolor')
+    plt.scatter(DP[0, L==2], DP[1, L==2], label='Virginica')
+    
+    # Aggiungiamo etichette e legenda per chiarezza
+    plt.legend()
+    plt.tight_layout()
+    
+    # Mostriamo a schermo il grafico
+    plt.savefig('plots/scatter_lda_%d_%d.pdf' % (1, 2))
+    plt.close()
 
 if __name__ == '__main__':
 
@@ -65,3 +97,5 @@ if __name__ == '__main__':
     USol = numpy.load('IRIS_LDA_matrix_m2.npy') # May have different signs for different directions
     print(USol)
     print(numpy.linalg.svd(numpy.hstack([U, USol]))[1])
+    
+    plot_scatter(D, L)
