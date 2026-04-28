@@ -35,12 +35,21 @@ if __name__ == '__main__':
 
     # Plot
     import matplotlib.pyplot as plt
+    import os
+
+    if not os.path.exists('out/plots'):
+        os.makedirs('out/plots')
+        
     plt.figure()
     XPlot = numpy.linspace(-8, 12, 1000)
     m = numpy.ones((1,1)) * 1.0
     C = numpy.ones((1,1)) * 2.0
     plt.plot(XPlot.ravel(), numpy.exp(logpdf_GAU_ND(vrow(XPlot), m, C)))
+    plt.xlabel("Feature Value")
+    plt.ylabel("Density")
     #plt.show()
+    plt.savefig('out/plots/hist_0.pdf')
+    plt.close()
 
     # Check pdf - we check both the fast and slow functions
     pdfSol = numpy.load('llGAU.npy')
@@ -76,7 +85,11 @@ if __name__ == '__main__':
     plt.hist(X1D.ravel(), bins=50, density=True)
     XPlot = numpy.linspace(-8, 12, 1000)
     plt.plot(XPlot.ravel(), numpy.exp(logpdf_GAU_ND(vrow(XPlot), m_ML, C_ML)))
+    plt.xlabel("Feature Value")
+    plt.ylabel("Density")
     #plt.show()
+    plt.savefig('out/plots/hist_1D.pdf')
+    plt.close()
 
     print(compute_ll(X1D, m_ML, C_ML))
     #Trying other values
