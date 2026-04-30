@@ -1,31 +1,26 @@
+import sys
+import os
 import numpy as np
 import matplotlib.pyplot as plt
-import os
-import sys
 
-import scripts.util as util
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-def vcol(x):
-    return x.reshape((x.size, 1))
-
-def vrow(x):
-    return x.reshape((1, x.size))
-
-def logpdf_GAU_ND_fast(x, mu, C):
-    P = np.linalg.inv(C)
-    return -0.5*x.shape[0]*np.log(np.pi*2) - 0.5*np.linalg.slogdet(C)[1] - 0.5 * ((x-mu) * (P @ (x-mu))).sum(0)
-
-def compute_mu_C(D):
-    mu = vcol(D.mean(1))
-    C = ((D-mu) @ (D-mu).T) / float(D.shape[1])
-    return mu, C
+from utils import data_utils, logger
+from utils.math_utils import compute_mu_C, logpdf_GAU_ND, vrow
 
 if __name__ == '__main__':
-    D, L = util.load('data/trainData.txt')
+    logger.setup_logger('out/04_density_estimation.txt')
+    
+    fname = 'data/trainData.txt'
+    if len(sys.argv) > 1:
+        fname = sys.argv[1]
+        
+    D, L = data_utils.load(fname)
     
     if not os.path.exists('out/density_plots'):
         os.makedirs('out/density_plots')
         
+    print("--- 1D Density Estimation Analysis ---")
     print("Feature | Class | Mean | Variance | Normal Test p-value")
     print("-" * 60)
 
@@ -64,7 +59,7 @@ if __name__ == '__main__':
             x_max = max(feature_data.max(), mu[0,0] + 4*np.sqrt(C[0,0]))
             XPlot = np.linspace(x_min, x_max, 1000)
             
-            pdfGau = np.exp(logpdf_GAU_ND_fast(vrow(XPlot), mu, C))
+            pdfGau = np.exp(logpdf_GAU_ND(vrow(XPlot), mu, C))
             
             plt.plot(XPlot.ravel(), pdfGau, color='r', linewidth=2)
             plt.xlabel(f"Feature {feature_num} Value")

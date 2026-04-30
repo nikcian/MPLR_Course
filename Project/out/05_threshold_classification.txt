@@ -1,0 +1,17 @@
+--- LDA Classification ---
+Threshold computed on DTR: -0.0185
+Number of errors on DVAL: 186 (out of 2000 samples)
+Error rate: 9.30%
+
+--- LDA Threshold Search (on DVAL) ---
+Best Threshold found: -0.1066
+Best Error: 182 (9.10%)
+Improvement: 0.20%
+
+--- PCA + LDA Classification Sweep ---
+PCA m=1 -> Errors: 187, Error rate: 9.35%
+PCA m=2 -> Errors: 185, Error rate: 9.25%
+PCA m=3 -> Errors: 185, Error rate: 9.25%
+PCA m=4 -> Errors: 185, Error rate: 9.25%
+PCA m=5 -> Errors: 186, Error rate: 9.30%
+PCA m=6 -> Errors: 186, Error rate: 9.30%

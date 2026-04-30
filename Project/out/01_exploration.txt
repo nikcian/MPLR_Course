@@ -1,3 +1,6 @@
+Generating plots...
+--- Dataset Statistics ---
+
 Class 0
 Mean:
 [[ 0.00287744]
@@ -40,3 +43,20 @@ Covariance:
 Variance: [1.43023345 0.57827792 0.5489026  0.55334275 1.31776792 1.28702609]
 Std. dev.: [1.19592368 0.76044587 0.74087962 0.74387012 1.14794073 1.13447172]
 
+--- Feature Analysis ---
+
+Analysis for features: [0, 1]
+Feature 0:
+  Mean0: 0.0029, Mean1: 0.0005, Diff: 0.0023
+  Var0: 0.5696, Var1: 1.4302, Diff: 0.8607
+Feature 1:
+  Mean0: 0.0187, Mean1: -0.0085, Diff: 0.0272
+  Var0: 1.4209, Var1: 0.5783, Diff: 0.8426
+
+Analysis for features: [2, 3]
+Feature 2:
+  Mean0: -0.6809, Mean1: 0.6652, Diff: 1.3462
+  Var0: 0.5500, Var1: 0.5489, Diff: 0.0011
+Feature 3:
+  Mean0: 0.6708, Mean1: -0.6642, Diff: 1.3350
+  Var0: 0.5360, Var1: 0.5533, Diff: 0.0173
