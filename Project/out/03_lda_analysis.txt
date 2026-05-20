@@ -1,6 +1,0 @@
-Generating LDA plots...
---- LDA Analysis ---
-LDA Direction 1
-Class False (0) - Mean: 1.3078, Std: 0.9959
-Class True  (1) - Mean: -1.2870, Std: 1.0041
-Distance between means: 2.5948

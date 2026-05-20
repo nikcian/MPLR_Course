@@ -1,0 +1,17 @@
+--- 1-D Gaussian ML fit per class per feature ---
+ feature | class |    mu_ML |  sigma2_ML
+--------------------------------------------------
+       1 |     0 |  +0.0029 |     0.5696
+       2 |     0 |  +0.0187 |     1.4209
+       3 |     0 |  -0.6809 |     0.5500
+       4 |     0 |  +0.6708 |     0.5360
+       5 |     0 |  +0.0280 |     0.6801
+       6 |     0 |  -0.0058 |     0.7050
+       1 |     1 |  +0.0005 |     1.4302
+       2 |     1 |  -0.0085 |     0.5783
+       3 |     1 |  +0.6652 |     0.5489
+       4 |     1 |  -0.6642 |     0.5533
+       5 |     1 |  -0.0417 |     1.3178
+       6 |     1 |  +0.0239 |     1.2870
+
+Qualitative observation: features 5-6 show bimodal distributions, so a single 1-D Gaussian is a poor fit.  Features 1-4 are well approximated by a Gaussian.  This is consistent with the worse performance of Naive Bayes on the full 6-feature set vs. the 1-4 subset that we will see in lab 5.
