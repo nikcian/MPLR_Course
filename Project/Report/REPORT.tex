@@ -1,21 +1,22 @@
 %-----------------------------------------------------------------------------
-%   MPLR Project Report - Fingerprint Spoofing Detection (English version)
+%   MPLR Project Report - Fingerprint Spoofing Detection
 %   Author : Nicola Ciancia
 %
-%   Recommended compilation (natively handles Unicode characters such as
-%   pi-tilde, sigma^2, arrow, etc.):
-%       xelatex REPORT_EN.tex
-%       xelatex REPORT_EN.tex      % second pass for TOC / cross-refs
-%
-%   LuaLaTeX works as well. pdfLaTeX is NOT supported (fontspec/polyglossia).
+%   The source is pure ASCII (every Unicode-looking symbol is typeset via
+%   LaTeX math commands), so the document compiles with any of the three
+%   mainstream engines:
+%       pdflatex REPORT.tex
+%       pdflatex REPORT.tex     % second pass for TOC / cross-refs
+%   or equivalently   xelatex / lualatex   (no other change needed).
 %-----------------------------------------------------------------------------
 
 \documentclass[11pt,a4paper]{article}
 
 \usepackage[a4paper,margin=2.2cm]{geometry}
-\usepackage{fontspec}
-\usepackage{polyglossia}
-\setdefaultlanguage{english}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[english]{babel}
 
 \usepackage{amsmath}
 \usepackage{amssymb}
@@ -29,6 +30,10 @@
 \usepackage{tabularx}
 \usepackage{array}
 \usepackage{multirow}
+% Left-aligned (ragged-right) flexible-width column for tabularx.  Plain X
+% justifies, which combined with long \texttt{} strings produces nasty
+% overlaps; L avoids it without changing the column-width algorithm.
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
 
 \usepackage{xcolor}
 \usepackage{microtype}
@@ -36,6 +41,8 @@
 \usepackage{float}
 \usepackage{enumitem}
 \usepackage{fancyvrb}
+\usepackage{seqsplit}              % \seqsplit{...} for breakable monospaced strings
+\usepackage[htt]{hyphenat}         % allow hyphenation inside \texttt{}
 
 \usepackage[hidelinks]{hyperref}
 \hypersetup{
@@ -58,11 +65,23 @@
 \setlength{\parskip}{4pt plus 1pt}
 \setlength{\parindent}{0pt}
 
+% Line-breaking: be lenient so long \texttt{} strings (filenames with
+% underscores, full function signatures, etc.) do not overflow into the
+% margin. \sloppy lets LaTeX prefer ugly spacing over overfull boxes;
+% \emergencystretch gives an extra elastic budget for the worst cases.
+\sloppy
+\emergencystretch=3em
+\hbadness=10000   % silence the badness=10000 warnings produced by \sloppy
+
 % Shorthand commands
 \newcommand{\actDCF}{\textrm{actDCF}}
 \newcommand{\minDCF}{\textrm{minDCF}}
 \newcommand{\DCF}{\textrm{DCF}}
 \newcommand{\llr}{\textrm{llr}}
+% Breakable monospaced text - use this in table cells or whenever a long
+% identifier (path, function signature) must wrap.  Internally splits at
+% every character via \seqsplit so any width is acceptable.
+\newcommand{\code}[1]{\texttt{\seqsplit{#1}}}
 
 \title{\textbf{Project Report}\\[0.3em]
        \Large Fingerprint Spoofing Detection}
@@ -1553,19 +1572,20 @@ future \textbf{calibration} lab. The flow would be:
 
 \begin{table}[H]
 \centering
-\footnotesize
-\begin{tabularx}{\textwidth}{rXXXX}
+\scriptsize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{rLLLL}
 \toprule
 Lab & PDF & Script & Text log & Plot dir \\
 \midrule
-2 & \texttt{Iris\_Dataset.pdf}        & \texttt{lab02\_iris\_dataset.py}                & \texttt{lab02\_iris\_dataset.txt}        & \texttt{plots/lab02/} \\
-3 & \texttt{Dimensionality\_Reduction.pdf} & \texttt{lab03\_dimensionality\_reduction.py} & \texttt{lab03\_dimensionality\_reduction.txt} & \texttt{plots/lab03/} \\
-4 & \texttt{Probability\_Density\_Estimation.pdf} & \texttt{lab04\_density\_estimation.py}    & \texttt{lab04\_density\_estimation.txt}  & \texttt{plots/lab04/} \\
-5 & \texttt{Generative\_Gaussian\_Models.pdf}    & \texttt{lab05\_gaussian\_classification.py}& \texttt{lab05\_gaussian\_classification.txt} & --- \\
-6 & \texttt{BayesDecisionsModelEvaluation.pdf}  & \texttt{lab06\_bayes\_evaluation.py}      & \texttt{lab06\_bayes\_evaluation.txt}     & \texttt{plots/lab06/} \\
-7 & \texttt{LogisticRegression.pdf}             & \texttt{lab07\_logistic\_regression.py}   & \texttt{lab07\_logistic\_regression.txt}  & \texttt{plots/lab07/} \\
-8 & \texttt{SVM.pdf}                            & \texttt{lab08\_svm.py}                    & \texttt{lab08\_svm.txt}                   & \texttt{plots/lab08/} \\
-9 & \texttt{GMM.pdf}                            & \texttt{lab09\_gmm.py}                    & \texttt{lab09\_gmm.txt}                   & \texttt{plots/lab09/} \\
+2 & \code{Iris\_Dataset.pdf}                  & \code{lab02\_iris\_dataset.py}              & \code{lab02\_iris\_dataset.txt}              & \code{plots/lab02/} \\
+3 & \code{Dimensionality\_Reduction.pdf}      & \code{lab03\_dimensionality\_reduction.py}  & \code{lab03\_dimensionality\_reduction.txt}  & \code{plots/lab03/} \\
+4 & \code{Probability\_Density\_Estimation.pdf} & \code{lab04\_density\_estimation.py}      & \code{lab04\_density\_estimation.txt}        & \code{plots/lab04/} \\
+5 & \code{Generative\_Gaussian\_Models.pdf}    & \code{lab05\_gaussian\_classification.py}  & \code{lab05\_gaussian\_classification.txt}   & --- \\
+6 & \code{BayesDecisionsModelEvaluation.pdf}  & \code{lab06\_bayes\_evaluation.py}          & \code{lab06\_bayes\_evaluation.txt}          & \code{plots/lab06/} \\
+7 & \code{LogisticRegression.pdf}             & \code{lab07\_logistic\_regression.py}       & \code{lab07\_logistic\_regression.txt}       & \code{plots/lab07/} \\
+8 & \code{SVM.pdf}                            & \code{lab08\_svm.py}                        & \code{lab08\_svm.txt}                        & \code{plots/lab08/} \\
+9 & \code{GMM.pdf}                            & \code{lab09\_gmm.py}                        & \code{lab09\_gmm.txt}                        & \code{plots/lab09/} \\
 \bottomrule
 \end{tabularx}
 \end{table}
@@ -1577,7 +1597,7 @@ Lab & PDF & Script & Text log & Plot dir \\
 \begin{table}[H]
 \centering
 \footnotesize
-\begin{tabularx}{\textwidth}{lXXX}
+\begin{tabularx}{\textwidth}{lLLL}
 \toprule
 Model         & Parameters                                       & Hyper-param           & Best value \\
 \midrule
