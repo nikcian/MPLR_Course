@@ -308,8 +308,7 @@ Script \texttt{experiments/lab03\_dimensionality\_reduction.py}, using:
       $DVAL \rightarrow DVAL_{\textrm{lda}}$.
 \item \textbf{Fix orientation} so that
       $\mu_{\textrm{lda}}[\textrm{class }0] > \mu_{\textrm{lda}}[\textrm{class }1]$
-      (CLAUDE.md convention: our LLR is
-      $\log p(x|1) - \log p(x|0)$).
+      (by convention our LLR is $\log p(x|1) - \log p(x|0)$).
 \item Threshold ``mean of means'':
       $t = (\mu_{\textrm{lda},0} + \mu_{\textrm{lda},1})/2$.
 \item Predict 0 if projection $\geq t$, 1 otherwise.
@@ -416,8 +415,8 @@ $m$ & Errors & Error rate \\
       separation''.
 \item \textbf{Is LDA finding a good direction?} Yes: with
       mean-of-means threshold we get 9.30 \% error rate --- the
-      recurring reference figure for all subsequent labs
-      (CLAUDE.md sanity check).
+      recurring reference figure used as a sanity-check value for all
+      subsequent labs.
 \item \textbf{Does changing the threshold help?} Marginally: only
       from 9.30 \% to 9.10 \% (4 fewer errors). The best threshold
       found ($-0.107$) is not far from the default ($-0.019$).
@@ -663,9 +662,9 @@ $m$ & MVG    & Naive Bayes & Tied    \\
       features, violating the naive assumption). Tied is unaffected.
 \end{itemize}
 
-\textbf{Sanity check (CLAUDE.md):} \checkmark\ MVG 7.00 \%, Naive
-7.20 \%, Tied 9.30 \%; subset 1--4: 7.95 / 7.65 / 9.50 \%. All
-expected values are met.
+\textbf{Sanity check:} \checkmark\ MVG 7.00 \%, Naive 7.20 \%,
+Tied 9.30 \%; subset 1--4: 7.95 / 7.65 / 9.50 \%. All expected values
+are met.
 
 %-----------------------------------------------------------------------------
 \section{Lab 6 -- Bayesian decisions and model evaluation}\label{sec:lab6}
@@ -807,7 +806,7 @@ models:
       strong miscalibration for high-class-1-prior applications.
 \end{itemize}
 
-\textbf{Sanity check (CLAUDE.md):} \checkmark\ MVG @ $\tilde{\pi}=0.5$:
+\textbf{Sanity check:} \checkmark\ MVG @ $\tilde{\pi}=0.5$:
 actDCF $\approx 0.140$, minDCF $\approx 0.130$.
 
 %-----------------------------------------------------------------------------
@@ -1433,7 +1432,7 @@ SVM poly $d=2$ (best $C$)                & 0.4664 & 0.2455 \\
 
 \subsection{Summary of design choices}
 
-\textbf{Conventions adopted} (CLAUDE.md):
+\textbf{Conventions adopted:}
 \begin{itemize}
 \item Samples are \textbf{columns} of $D \in \mathbb{R}^{M \times N}$
       with $M=6, N=6000$.

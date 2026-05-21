@@ -144,8 +144,8 @@ Script [experiments/lab03_dimensionality_reduction.py](../experiments/lab03_dime
 1. Estimate `U_lda` on `(DTR, LTR)`.
 2. Project `DTR → DTR_lda`, `DVAL → DVAL_lda`.
 3. **Fix orientation** so that `μ_lda[class 0] > μ_lda[class 1]`
-   (CLAUDE.md convention: our LLR is log p(x|1) − log p(x|0); we flip
-   the sign if needed for consistency).
+   (by convention our LLR is log p(x|1) − log p(x|0); we flip the sign
+   if needed for consistency).
 4. Threshold "mean of means": `t = (μ_lda₀ + μ_lda₁) / 2`.
 5. Predict 0 if projection ≥ t, 1 otherwise.
 
@@ -211,8 +211,8 @@ PCA pre-processing + LDA (m = number of PCA components kept):
   No new clusters become visible because PCA is a rotation of the
   reference frame. There is no "more separation".
 - **Is LDA finding a good direction?** Yes: with mean-of-means threshold
-  we get 9.30 % error rate — the recurring reference figure for all
-  subsequent labs (CLAUDE.md sanity check).
+  we get 9.30 % error rate — the recurring reference figure used as a
+  sanity-check value for all subsequent labs.
 - **Does changing the threshold help?** Marginally: only from 9.30 %
   to 9.10 % (4 fewer errors). The best threshold found (−0.107) is not
   far from the default (−0.019).
@@ -392,7 +392,7 @@ the data.
   reintroduces correlation in the new features, violating the naive
   assumption). Tied is unaffected.
 
-**Sanity check (CLAUDE.md):** ✓ MVG 7.00 %, Naive 7.20 %, Tied 9.30 %;
+**Sanity check:** ✓ MVG 7.00 %, Naive 7.20 %, Tied 9.30 %;
 subset 1-4: 7.95 % / 7.65 % / 9.50 %. All expected values are met.
 
 ---
@@ -490,7 +490,7 @@ models:
   actDCF blows up faster on the high π̃ side (log-odds > 2): a sign of
   strong miscalibration for high-class-1-prior applications.
 
-**Sanity check (CLAUDE.md):** ✓ MVG @ π̃=0.5: actDCF ≈ 0.140, minDCF
+**Sanity check:** ✓ MVG @ π̃=0.5: actDCF ≈ 0.140, minDCF
 ≈ 0.130.
 
 ---
@@ -937,7 +937,7 @@ The plot shows actDCF and minDCF as a function of
 
 ### 9.1 Summary of design choices
 
-**Conventions adopted** (CLAUDE.md):
+**Conventions adopted:**
 - Samples are **columns** of `D ∈ ℝ^(M×N)` with M=6, N=6000.
 - Class 1 (genuine) on top of the ratio:
   `LLR = log p(x|1) − log p(x|0)`.
