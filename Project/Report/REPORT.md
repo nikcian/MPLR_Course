@@ -276,10 +276,10 @@ The script outputs a table of the estimates and 6 plots
 
 - **Consequence for Gaussian models:** we expect single-Gaussian
   models (MVG, Naive Bayes, Tied) to underperform compared to a GMM,
-  especially when features 5-6 are included. This is confirmed in §4
-  (Lab 5): MVG on features 1-4 gets 7.95 % error, MVG on all 6 features
-  7.00 % — the gain is marginal because a full-covariance MVG struggles
-  with multimodal features, but the inter-feature covariance helps. The
+  especially when features 5-6 are included. This is confirmed in §4:
+  MVG on features 1-4 gets 7.95 % error, MVG on all 6 features 7.00 %
+  — the gain is marginal because a full-covariance MVG struggles with
+  multimodal features, but the inter-feature covariance helps. The
   real quality jump comes with GMM (§8).
 
 ---
@@ -879,7 +879,7 @@ in actDCF. The explanation:
 | Family / Model | actDCF | minDCF |
 |---|---:|---:|
 | **GMM Full (K₀=1, K₁=16)** | 0.2055 | 0.1495 |
-| GMM Diagonal (K₀=8, K₁=16) | 0.1487 | 0.1324 |
+| GMM Diagonal (K₀=8, K₁=16) | 0.1487 | **0.1324** |
 | LR quadratic (best λ) | 0.4972 | 0.2436 |
 | LR linear (best λ) | 0.4568 | 0.3611 |
 | SVM RBF (best γ, C) | 0.4226 | 0.1725 |
