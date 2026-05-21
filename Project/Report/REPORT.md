@@ -6,7 +6,7 @@
 
 ---
 
-## 0. Executive summary
+## 1. Executive summary
 
 The project task is a **binary classification** problem for fingerprint
 spoofing detection. The dataset (`Project/data/trainData.txt`) contains
@@ -45,14 +45,14 @@ those used in this report are included in [images/](images/).
 The winning model in terms of minDCF is the **full-covariance GMM** with
 1 component for the fake class and 16 for the genuine class. This result
 is perfectly consistent with the exploratory structure of the dataset
-(cf. §1 and §2): the fake class is essentially uni-modal, while the
+(cf. §2 and §3): the fake class is essentially uni-modal, while the
 genuine class is multi-modal (4 clusters on features 5-6).
 
 ---
 
-## 1. Lab 2 — Exploratory data analysis
+## 2. Lab 2 — Exploratory data analysis
 
-### 1.1 Method
+### 2.1 Method
 
 The script [experiments/lab02_iris_dataset.py](../experiments/lab02_iris_dataset.py):
 
@@ -66,7 +66,7 @@ The script [experiments/lab02_iris_dataset.py](../experiments/lab02_iris_dataset
 4. For each pair of features 1-2, 3-4, 5-6, prints the difference of
    means |Δμ| and of variances |Δσ²|.
 
-### 1.2 Per-class statistics
+### 2.2 Per-class statistics
 
 | Class | μ₁ | μ₂ | μ₃ | μ₄ | μ₅ | μ₆ |
 |---|---:|---:|---:|---:|---:|---:|
@@ -78,7 +78,7 @@ The script [experiments/lab02_iris_dataset.py](../experiments/lab02_iris_dataset
 | 0 (fake) | 0.570 | **1.421** | 0.550 | 0.536 | 0.680 | 0.705 |
 | 1 (genuine) | **1.430** | 0.578 | 0.549 | 0.553 | **1.318** | **1.287** |
 
-### 1.3 Answers to the Lab 2 project questions
+### 2.3 Answers to the Lab 2 project questions
 
 **Q1 — Features 1 and 2.**
 The class means are very similar (|Δμ| ≈ 0.002 and 0.027 respectively —
@@ -115,7 +115,7 @@ motivation for a GMM with 4+ components on class 1.
 ![Feature 5](images/lab02_hist_5.png)
 ![Scatter 5-6](images/lab02_scatter_5_6.png)
 
-### 1.4 Implications for the subsequent models
+### 2.4 Implications for the subsequent models
 
 - Features 1-2 → a classifier based on means only (Tied MVG, LDA,
   linear LR) **cannot** discriminate them. Models sensitive to
@@ -128,9 +128,9 @@ motivation for a GMM with 4+ components on class 1.
 
 ---
 
-## 2. Lab 3 — Dimensionality reduction (PCA and LDA)
+## 3. Lab 3 — Dimensionality reduction (PCA and LDA)
 
-### 2.1 Method
+### 3.1 Method
 
 Script [experiments/lab03_dimensionality_reduction.py](../experiments/lab03_dimensionality_reduction.py), using:
 - [models/pca.py](../models/pca.py) — `compute_pca(D, m)` computes the
@@ -149,7 +149,7 @@ Script [experiments/lab03_dimensionality_reduction.py](../experiments/lab03_dime
 4. Threshold "mean of means": `t = (μ_lda₀ + μ_lda₁) / 2`.
 5. Predict 0 if projection ≥ t, 1 otherwise.
 
-### 2.2 PCA results (from the log)
+### 3.2 PCA results (from the log)
 
 | PCA direction | μ class 0 | σ class 0 | μ class 1 | σ class 1 | \|Δμ\| |
 |---|---:|---:|---:|---:|---:|
@@ -171,7 +171,7 @@ rotation: the clusters (e.g. those in features 5-6) remain the same,
 just in different coordinates. The post-PCA histograms and scatters
 "look" different but the distances between points are invariant.
 
-### 2.3 LDA results
+### 3.3 LDA results
 
 LDA 1-D (maximum number of directions for a binary problem):
 
@@ -185,7 +185,7 @@ rather than only the total variance.
 
 ![Histogram LDA](images/lab03_hist_lda_1.png)
 
-### 2.4 LDA-based classification
+### 3.4 LDA-based classification
 
 | Configuration | Errors | Error rate |
 |---|---:|---:|
@@ -204,7 +204,7 @@ PCA pre-processing + LDA (m = number of PCA components kept):
 | 5 | 186 | 9.30 % |
 | 6 (no PCA) | 186 | 9.30 % |
 
-### 2.5 Answers to the Lab 3 project questions
+### 3.5 Answers to the Lab 3 project questions
 
 - **PCA effects**: only the first direction discriminates; the other 5
   carry "scale" information that PCA, being unsupervised, cannot use.
@@ -224,9 +224,9 @@ PCA pre-processing + LDA (m = number of PCA components kept):
 
 ---
 
-## 3. Lab 4 — Density estimation (1-D Gaussian fit)
+## 4. Lab 4 — Density estimation (1-D Gaussian fit)
 
-### 3.1 Method
+### 4.1 Method
 
 Script [experiments/lab04_density_estimation.py](../experiments/lab04_density_estimation.py).
 
@@ -239,7 +239,7 @@ For each of the 6 features and each of the 2 classes:
 The script outputs a table of the estimates and 6 plots
 (`feature_1.png` … `feature_6.png`).
 
-### 3.2 Per-class, per-feature ML estimates
+### 4.2 Per-class, per-feature ML estimates
 
 | Feature | Class | μ_ML | σ²_ML |
 |---:|---:|---:|---:|
@@ -256,7 +256,7 @@ The script outputs a table of the estimates and 6 plots
 | 6 | 0 | −0.0058 | 0.7050 |
 | 6 | 1 | +0.0239 | 1.2870 |
 
-### 3.3 Answers to the Lab 4 project questions
+### 4.3 Answers to the Lab 4 project questions
 
 - **For which features is the Gaussian fit good?** Features
   **1-2-3-4** are reasonably Gaussian: histograms show a single,
@@ -276,17 +276,17 @@ The script outputs a table of the estimates and 6 plots
 
 - **Consequence for Gaussian models:** we expect single-Gaussian
   models (MVG, Naive Bayes, Tied) to underperform compared to a GMM,
-  especially when features 5-6 are included. This is confirmed in §4:
+  especially when features 5-6 are included. This is confirmed in §5:
   MVG on features 1-4 gets 7.95 % error, MVG on all 6 features 7.00 %
   — the gain is marginal because a full-covariance MVG struggles with
   multimodal features, but the inter-feature covariance helps. The
-  real quality jump comes with GMM (§8).
+  real quality jump comes with GMM (§9).
 
 ---
 
-## 4. Lab 5 — Generative Gaussian classifiers
+## 5. Lab 5 — Generative Gaussian classifiers
 
-### 4.1 Method
+### 5.1 Method
 
 Script [experiments/lab05_gaussian_classification.py](../experiments/lab05_gaussian_classification.py), using [models/gaussian_models.py](../models/gaussian_models.py):
 
@@ -301,7 +301,7 @@ Script [experiments/lab05_gaussian_classification.py](../experiments/lab05_gauss
 using `logpdf_GAU_ND` for numerical stability. Prediction: 1 if
 llr ≥ 0, 0 otherwise (uniform priors).
 
-### 4.2 Covariances and Pearson correlations
+### 5.2 Covariances and Pearson correlations
 
 The **full covariances** of the two classes (summary of the output):
 
@@ -320,7 +320,7 @@ class. This is why Naive Bayes (which ASSUMES diagonal covariance) has
 performance equal or close to MVG: the assumption is largely true on
 the data.
 
-### 4.3 Classification results (error rate on DVAL)
+### 5.3 Classification results (error rate on DVAL)
 
 **All 6 features:**
 
@@ -365,7 +365,7 @@ the data.
 | 5 | 7.10 % | 8.75 % | 9.30 % |
 | 6 | 7.00 % | 8.90 % | 9.30 % |
 
-### 4.4 Answers to the Lab 5 project questions
+### 5.4 Answers to the Lab 5 project questions
 
 - **Which model is best?** The **full MVG** on the 6 features (7.00 %).
   Tied is clearly worse (9.30 %) because it imposes a shared covariance
@@ -397,9 +397,9 @@ subset 1-4: 7.95 % / 7.65 % / 9.50 %. All expected values are met.
 
 ---
 
-## 5. Lab 6 — Bayesian decisions and model evaluation
+## 6. Lab 6 — Bayesian decisions and model evaluation
 
-### 5.1 Theoretical framework
+### 6.1 Theoretical framework
 
 **Cost matrix** for a binary task:
 \[ \mathbf{C} = \begin{pmatrix} 0 & C_{fn} \\ C_{fp} & 0 \end{pmatrix} \]
@@ -428,7 +428,7 @@ Implementation in [utils/evaluation.py](../utils/evaluation.py):
   possible Pfn/Pfp in O(N log N).
 - `compute_actDCF_binary_fast = compute_empirical_Bayes_risk_binary_llr_optimal_decisions`.
 
-### 5.2 Applications considered
+### 6.2 Applications considered
 
 The Lab 6 PDF asks to evaluate 5 applications and convert them to
 effective priors:
@@ -447,7 +447,7 @@ security" (π̃=0.1) is equivalent, decision-wise, to the "many
 impostors" application (π₁=0.1). The three canonical effective priors
 we examine from now on are **0.1, 0.5, 0.9**.
 
-### 5.3 DCF results for the three Gaussian models
+### 6.3 DCF results for the three Gaussian models
 
 | Model | π̃ | actDCF | minDCF | cal-loss |
 |---|---:|---:|---:|---:|
@@ -461,14 +461,14 @@ we examine from now on are **0.1, 0.5, 0.9**.
 | Naive Bayes | 0.9 | 0.3893 | 0.3510 | 0.0383 |
 | Tied | 0.9 | 0.4626 | 0.4421 | 0.0204 |
 
-### 5.4 Bayes Error Plot
+### 6.4 Bayes Error Plot
 
 Plot with `prior log-odds ∈ [-4, +4]`, one column for each of the 3
 models:
 
 ![Bayes Error Plots](images/lab06_bayes_error_plots.png)
 
-### 5.5 Answers to the Lab 6 project questions
+### 6.5 Answers to the Lab 6 project questions
 
 - **Which model is best in minDCF?** For **π̃=0.5**: MVG (0.130). For
   **π̃=0.1 and 0.9**: Naive Bayes (0.257 and 0.351). Tied is always
@@ -495,9 +495,9 @@ models:
 
 ---
 
-## 6. Lab 7 — Logistic Regression
+## 7. Lab 7 — Logistic Regression
 
-### 6.1 Theoretical framework
+### 7.1 Theoretical framework
 
 **Standard (non-weighted) model** (loss = average cross-entropy +
 regularization):
@@ -520,12 +520,12 @@ training prior**:
 **Quadratic LR:** expansion `φ(x) = [vec(xx^T), x]` (42-D from 6
 features). Implemented in `expand_features_quadratic`.
 
-### 6.2 Experiment setup
+### 7.2 Experiment setup
 
 `λ ∈ numpy.logspace(-4, 2, 13)` (13 values from 10⁻⁴ to 10²). Target
 application: π_T = 0.1.
 
-### 6.3 Standard LR on the full training set (4000 samples)
+### 7.3 Standard LR on the full training set (4000 samples)
 
 | λ | J*(w,b) | actDCF | minDCF |
 |---:|---:|---:|---:|
@@ -552,7 +552,7 @@ with λ: the weights are "shrunk" and the prior offset
 (`log(π_emp/(1-π_emp))`) is no longer enough to calibrate them; the
 score loses its probabilistic interpretation.
 
-### 6.4 Standard LR on the reduced dataset (1 sample out of 50 → 80 samples)
+### 7.4 Standard LR on the reduced dataset (1 sample out of 50 → 80 samples)
 
 | λ | J*(w,b) | actDCF | minDCF |
 |---:|---:|---:|---:|
@@ -574,7 +574,7 @@ regularization (small λ), the 80 samples cause overfitting → minDCF at
 very large λ the model stays stable (no dramatic underfitting). actDCF
 has a typical "U" shape.
 
-### 6.5 Prior-weighted LR (π_T = 0.1, full DTR)
+### 7.5 Prior-weighted LR (π_T = 0.1, full DTR)
 
 | λ | J* | actDCF | minDCF |
 |---:|---:|---:|---:|
@@ -593,7 +593,7 @@ change the geometry of the problem. Additionally, prior-weighted
 requires knowing π_T at training time: a practical disadvantage that
 the non-weighted version avoids.
 
-### 6.6 Quadratic LR (full DTR)
+### 7.6 Quadratic LR (full DTR)
 
 | λ | J* | actDCF | minDCF |
 |---:|---:|---:|---:|
@@ -615,7 +615,7 @@ overfitting (minDCF improves up to 3.2·10⁻²), then worsens again. The
 quadratic space captures **feature 5-6 interactions** (the 4 clusters)
 that the linear model cannot see.
 
-### 6.7 Final comparison at target π_T = 0.1
+### 7.7 Final comparison at target π_T = 0.1
 
 | Model | actDCF | minDCF | hyper |
 |---|---:|---:|---|
@@ -626,7 +626,7 @@ that the linear model cannot see.
 | Prior-weighted LR (best λ) | 1.0000 | 0.3620 | λ=32 |
 | **Quadratic LR (best λ)** | 0.4972 | **0.2436** | λ=3.2e-2 |
 
-### 6.8 Answers to the Lab 7 project questions
+### 7.8 Answers to the Lab 7 project questions
 
 - **Effect of λ on the full dataset:** negligible on minDCF
   (separability), critical for actDCF (calibration). For λ→∞ the
@@ -651,9 +651,9 @@ that the linear model cannot see.
 
 ---
 
-## 7. Lab 8 — Support Vector Machines
+## 8. Lab 8 — Support Vector Machines
 
-### 7.1 Theoretical framework
+### 8.1 Theoretical framework
 
 **Linear primal SVM** (with the extended-feature trick to remove the
 Σαᵢzᵢ=0 constraint):
@@ -678,7 +678,7 @@ minDCF is meaningful as a measure of separability.
   includes the regularized bias; for `c=0` it does not.
 - RBF: `k(x₁, x₂) = exp(−γ ||x₁ - x₂||²)`. Does not include bias → ξ=1.
 
-### 7.2 Experiment setup
+### 8.2 Experiment setup
 
 - Linear: C ∈ logspace(-5, 0, 11), K=1. Test on both original and
   centered data.
@@ -687,7 +687,7 @@ minDCF is meaningful as a measure of separability.
   C ∈ logspace(-3, 2, 11), ξ=1.
 - (Optional) Poly d=4, c=1, ξ=0.
 
-### 7.3 Linear SVM results (summary)
+### 8.3 Linear SVM results (summary)
 
 **Non-centered:**
 
@@ -712,7 +712,7 @@ LR at 0.361). Centering does not substantially change the results (data
 was already centered around zero). actDCF stays very high (≥ 0.49 at
 best): the linear SVM is heavily miscalibrated for π_T = 0.1.
 
-### 7.4 Polynomial kernel SVM (d=2, c=1, ξ=0)
+### 8.4 Polynomial kernel SVM (d=2, c=1, ξ=0)
 
 | C | primal | dual | actDCF | minDCF |
 |---:|---:|---:|---:|---:|
@@ -730,7 +730,7 @@ best): the linear SVM is heavily miscalibrated for π_T = 0.1.
 (0.244). The poly d=2 kernel essentially implements the same expanded
 feature space as the Quadratic LR.
 
-### 7.5 RBF kernel SVM (γ × C grid, ξ=1)
+### 8.5 RBF kernel SVM (γ × C grid, ξ=1)
 
 Sweep over 4 γ × 11 C = 44 models. Summary table (best row per γ):
 
@@ -751,7 +751,7 @@ project to go below 0.20 minDCF. Its ability to draw non-parametric
 decision boundaries captures the "cluster" structure of features 5-6
 well.
 
-### 7.6 (Optional) Poly d=4
+### 8.6 (Optional) Poly d=4
 
 | C | actDCF | minDCF |
 |---:|---:|---:|
@@ -764,7 +764,7 @@ because features 5-6 form a structure well approximated by
 high-order cross products (cf. PDF hint: the product `y₅ y₆` on a
 sample of a given quadrant distinguishes the four quadrants).
 
-### 7.7 Final comparison (π_T = 0.1)
+### 8.7 Final comparison (π_T = 0.1)
 
 | SVM model | actDCF | minDCF | hyper |
 |---|---:|---:|---|
@@ -774,7 +774,7 @@ sample of a given quadrant distinguishes the four quadrants).
 | **RBF (best γ, C)** | 0.423 | **0.173** | γ=e⁻², C=32 |
 | (opt) Poly d=4 (best C) | 0.320 | 0.177 | C=3.2e-3 |
 
-### 7.8 Answers to the Lab 8 project questions
+### 8.8 Answers to the Lab 8 project questions
 
 - **Linear SVM and regularization:** small C (strong regularization) →
   the model collapses, minDCF=1. Large C: minDCF stabilizes around
@@ -799,9 +799,9 @@ sample of a given quadrant distinguishes the four quadrants).
 
 ---
 
-## 8. Lab 9 — Gaussian Mixture Models
+## 9. Lab 9 — Gaussian Mixture Models
 
-### 8.1 Theoretical framework
+### 9.1 Theoretical framework
 
 **GMM model:** mixture density of M Gaussians:
 \[ f_X(x) = \sum_{g=1}^{M} w_g \mathcal{N}(x|\mu_g, \Sigma_g) \]
@@ -831,7 +831,7 @@ applies EM to the doubled GMM.
 **LLR for binary classification:**
 `llr(x) = log GMM_1(x) − log GMM_0(x)`.
 
-### 8.2 Experiment setup
+### 9.2 Experiment setup
 
 - For each class, K ∈ {1, 2, 4, 8, 16}. We explore **the full
   Cartesian product** 5×5 = 25 combinations (K₀ for fake, K₁ for
@@ -839,7 +839,7 @@ applies EM to the doubled GMM.
 - ψ = 1e-2, α_LBG = 0.1, EM stopping criterion: Δ avg-ll ≤ 1e-6.
 - Target: π_T = 0.1.
 
-### 8.3 Full-covariance GMM results
+### 9.3 Full-covariance GMM results
 
 **minDCF matrix (row K₀, column K₁):**
 
@@ -861,7 +861,7 @@ applies EM to the doubled GMM.
 | K₀=8 | 0.200 | 0.191 | 0.199 | 0.193 | 0.173 |
 | K₀=16 | 0.178 | 0.175 | 0.192 | 0.205 | 0.177 |
 
-### 8.4 Diagonal-covariance GMM results
+### 9.4 Diagonal-covariance GMM results
 
 **Best Diagonal GMM:** K₀=8, K₁=16 — minDCF = 0.1324, actDCF = 0.1487.
 
@@ -874,7 +874,7 @@ in actDCF. The explanation:
 - Diagonal is also better calibrated (cal-loss 0.016 vs 0.056 for the
   Full).
 
-### 8.5 Final best-of-family comparison at π_T = 0.1
+### 9.5 Final best-of-family comparison at π_T = 0.1
 
 | Family / Model | actDCF | minDCF |
 |---|---:|---:|
@@ -885,7 +885,7 @@ in actDCF. The explanation:
 | SVM RBF (best γ, C) | 0.4226 | 0.1725 |
 | SVM poly d=2 (best C) | 0.4664 | 0.2455 |
 
-### 8.6 Bayes Error Plot (top-3 best-of-family)
+### 9.6 Bayes Error Plot (top-3 best-of-family)
 
 The plot shows actDCF and minDCF as a function of
 `prior log-odds ∈ [-4, +4]` for the three family winners:
@@ -902,14 +902,14 @@ The plot shows actDCF and minDCF as a function of
   log-odds = 0 (π̃ ≈ 0.5, close to the empirical prior), worse at the
   extremes.
 
-### 8.7 Answers to the Lab 9 project questions
+### 9.7 Answers to the Lab 9 project questions
 
 - **Which K₀×K₁ combinations work best?**
   - The dominant pattern: increasing K₁ (components for the genuine
     class) improves minDCF up to K₁=16. Increasing K₀ has a modest,
     non-monotone benefit.
   - **The best is K₀=1, K₁=16** (full-cov): consistent with the dataset
-    structure observed in §1. The fake class is essentially uni-modal →
+    structure observed in §2. The fake class is essentially uni-modal →
     1 Gaussian is enough. The genuine class is multi-modal (4 clusters
     in features 5-6, with bimodality in those same features) → many
     components are needed.
@@ -933,9 +933,9 @@ The plot shows actDCF and minDCF as a function of
 
 ---
 
-## 9. General discussion and conclusions
+## 10. General discussion and conclusions
 
-### 9.1 Summary of design choices
+### 10.1 Summary of design choices
 
 **Conventions adopted:**
 - Samples are **columns** of `D ∈ ℝ^(M×N)` with M=6, N=6000.
@@ -949,7 +949,7 @@ The plot shows actDCF and minDCF as a function of
 - Plots in PNG (for the Markdown report); text logs mirrored to
   terminal and file via `utils/logger.py`.
 
-### 9.2 Cross-lab comparison: model ranking (minDCF at π̃=0.1)
+### 10.2 Cross-lab comparison: model ranking (minDCF at π̃=0.1)
 
 | Rank | Model | minDCF | Characteristics |
 |---:|---|---:|---|
@@ -964,7 +964,7 @@ The plot shows actDCF and minDCF as a function of
 | 9 | Tied Gaussian | 0.3628 | Parametric generative, linear boundary |
 | 10 | LR linear / SVM linear | ≈0.36 | Linear discriminative |
 
-### 9.3 Take-aways for an exam
+### 10.3 Take-aways for an exam
 
 1. **The Lab 2 exploratory analysis already predicts the winner.** The
    4 clusters in features 5-6 and the bimodality of the genuine class
@@ -1018,7 +1018,7 @@ The plot shows actDCF and minDCF as a function of
    - Full DTR + Quadratic LR (42 parameters): regularization useful
      again (sample/parameter ratio drops to ~95).
 
-### 9.4 A natural extension: score calibration
+### 10.4 A natural extension: score calibration
 
 For this project, models have been saved to disk (see
 `out/lab07/`, `out/lab08/`, `out/lab09/gmm_full_best_llr.npy`)
@@ -1031,7 +1031,7 @@ into the project). The flow would be:
 3. Apply the affine transformation to the evaluation scores.
 4. Compare actDCF before/after: we expect it to approach minDCF.
 
-### 9.5 Possible future improvements (not implemented)
+### 10.5 Possible future improvements (not implemented)
 
 - **Score-level fusion:** combine LR quadratic + GMM + SVM RBF via
   averaging or a multi-input calibrator.

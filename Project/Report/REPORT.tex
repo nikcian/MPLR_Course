@@ -112,8 +112,7 @@ of features 5 and 6 revealed in the exploratory phase.
 \newpage
 
 %-----------------------------------------------------------------------------
-\section*{0.~Executive summary}
-\addcontentsline{toc}{section}{0.~Executive summary}
+\section{Executive summary}\label{sec:exec}
 %-----------------------------------------------------------------------------
 
 The project task is a \textbf{binary classification} problem for
@@ -303,9 +302,9 @@ Script \texttt{experiments/lab03\_dimensionality\_reduction.py}, using:
 
 \textbf{LDA classification pipeline (binary):}
 \begin{enumerate}
-\item Estimate $U_{\textrm{lda}}$ on $(DTR, LTR)$.
-\item Project $DTR \rightarrow DTR_{\textrm{lda}}$,
-      $DVAL \rightarrow DVAL_{\textrm{lda}}$.
+\item Estimate $U_{\textrm{lda}}$ on $(\mathit{DTR}, \mathit{LTR})$.
+\item Project $\mathit{DTR} \rightarrow \mathit{DTR}_{\textrm{lda}}$,
+      $\mathit{DVAL} \rightarrow \mathit{DVAL}_{\textrm{lda}}$.
 \item \textbf{Fix orientation} so that
       $\mu_{\textrm{lda}}[\textrm{class }0] > \mu_{\textrm{lda}}[\textrm{class }1]$
       (by convention our LLR is $\log p(x|1) - \log p(x|0)$).
