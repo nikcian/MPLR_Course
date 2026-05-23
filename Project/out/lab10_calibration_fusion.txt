@@ -1,0 +1,156 @@
+Loading training data from data/trainData.txt
+  DTR shape: (6, 4000), DVAL shape: (6, 2000)
+Loading evaluation data from data/evalData.txt
+  DEVAL shape: (6, 6000)
+
+############### Retraining best per-family models on DTR ###############
+  Quadratic LR  (lambda = 3.2e-02)
+     empirical pi_1 on DTR = 0.5005
+  RBF SVM       (gamma = e^-2 = 0.1353, C = 32, xi = 1)
+  Diagonal GMM  (K0 = 8, K1 = 16)
+
+--- Sanity check: raw validation metrics at pi_T = 0.1 ---
+  Quadratic LR  (val raw, pi_emp offset)   | actDCF = 0.4992 | minDCF = 0.2436
+  RBF SVM       (val raw)                  | actDCF = 0.4206 | minDCF = 0.1765
+  Diagonal GMM  (val raw)                  | actDCF = 0.1487 | minDCF = 0.1324
+
+############### Step 1 - K-fold calibration of each system ###############
+K = 5, pT (cal training prior) = 0.1, target pi_T = 0.1
+
+  -- LR_quadratic --
+  raw scores (val)                         | actDCF = 0.4992 | minDCF = 0.2436
+  calibrated scores (val, K-fold pooled)   | actDCF = 0.2731 | minDCF = 0.2486
+
+  -- SVM_RBF --
+  raw scores (val)                         | actDCF = 0.4206 | minDCF = 0.1765
+  calibrated scores (val, K-fold pooled)   | actDCF = 0.1894 | minDCF = 0.1685
+
+  -- GMM_diagonal --
+  raw scores (val)                         | actDCF = 0.1487 | minDCF = 0.1324
+  calibrated scores (val, K-fold pooled)   | actDCF = 0.1518 | minDCF = 0.1325
+
+############### Step 2 - K-fold fusion of the three systems ###############
+
+  -- Fusion (LR + SVM + GMM) --
+  fused calibrated scores (val, K-fold pooled) | actDCF = 0.1558 | minDCF = 0.1314
+
+--- Validation summary (K-fold pooled) ---
+                          system |  minDCF |  actDCF
+------------------------------------------------------
+              LR_quadratic (raw) |  0.2436 |  0.4992
+             LR_quadratic (cal.) |  0.2486 |  0.2731
+                   SVM_RBF (raw) |  0.1765 |  0.4206
+                  SVM_RBF (cal.) |  0.1685 |  0.1894
+              GMM_diagonal (raw) |  0.1324 |  0.1487
+             GMM_diagonal (cal.) |  0.1325 |  0.1518
+                   Fusion (cal.) |  0.1314 |  0.1558
+
+############### Step 3 - Delivered system choice ###############
+  Ranking by actDCF on validation (K-fold pooled):
+           GMM_diagonal  actDCF = 0.1518  <- delivered
+                 Fusion  actDCF = 0.1558
+                SVM_RBF  actDCF = 0.1894
+           LR_quadratic  actDCF = 0.2731
+  Delivered system: GMM_diagonal  (actDCF = 0.1518)
+
+############### Step 4 - Apply final models to evaluation set ###############
+
+  -- LR_quadratic on EVALUATION set --
+  raw scores (eval)                        | actDCF = 0.4962 | minDCF = 0.3518
+  calibrated scores (eval)                 | actDCF = 0.3896 | minDCF = 0.3518
+
+  -- SVM_RBF on EVALUATION set --
+  raw scores (eval)                        | actDCF = 0.4019 | minDCF = 0.2626
+  calibrated scores (eval)                 | actDCF = 0.2883 | minDCF = 0.2626
+
+  -- GMM_diagonal on EVALUATION set --
+  raw scores (eval)                        | actDCF = 0.1933 | minDCF = 0.1808
+  calibrated scores (eval)                 | actDCF = 0.1943 | minDCF = 0.1808
+
+  -- Fusion (LR + SVM + GMM) on EVALUATION set --
+  fused calibrated scores (eval)           | actDCF = 0.2033 | minDCF = 0.1875
+
+--- Evaluation summary ---
+                          system |  minDCF |  actDCF
+------------------------------------------------------
+              LR_quadratic (raw) |  0.3518 |  0.4962
+             LR_quadratic (cal.) |  0.3518 |  0.3896
+                   SVM_RBF (raw) |  0.2626 |  0.4019
+                  SVM_RBF (cal.) |  0.2626 |  0.2883
+              GMM_diagonal (raw) |  0.1808 |  0.1933
+             GMM_diagonal (cal.) |  0.1808 |  0.1943
+                   Fusion (cal.) |  0.1875 |  0.2033
+
+############### Step 5 [optional] - All GMM configs minDCF on eval ###############
+Repeating the lab 9 sweep (Full + Diagonal) and reporting minDCF on the EVAL set.
+  cov=    Full  K0= 1  K1= 1   minDCF(eval) = 0.4073
+  cov=    Full  K0= 1  K1= 2   minDCF(eval) = 0.4101
+  cov=    Full  K0= 1  K1= 4   minDCF(eval) = 0.2716
+  cov=    Full  K0= 1  K1= 8   minDCF(eval) = 0.2182
+  cov=    Full  K0= 1  K1=16   minDCF(eval) = 0.2331
+  cov=    Full  K0= 2  K1= 1   minDCF(eval) = 0.2985
+  cov=    Full  K0= 2  K1= 2   minDCF(eval) = 0.2968
+  cov=    Full  K0= 2  K1= 4   minDCF(eval) = 0.2363
+  cov=    Full  K0= 2  K1= 8   minDCF(eval) = 0.2120
+  cov=    Full  K0= 2  K1=16   minDCF(eval) = 0.2041
+  cov=    Full  K0= 4  K1= 1   minDCF(eval) = 0.3252
+  cov=    Full  K0= 4  K1= 2   minDCF(eval) = 0.3295
+  cov=    Full  K0= 4  K1= 4   minDCF(eval) = 0.2462
+  cov=    Full  K0= 4  K1= 8   minDCF(eval) = 0.2123
+  cov=    Full  K0= 4  K1=16   minDCF(eval) = 0.2153
+  cov=    Full  K0= 8  K1= 1   minDCF(eval) = 0.2571
+  cov=    Full  K0= 8  K1= 2   minDCF(eval) = 0.2529
+  cov=    Full  K0= 8  K1= 4   minDCF(eval) = 0.2106
+  cov=    Full  K0= 8  K1= 8   minDCF(eval) = 0.1802
+  cov=    Full  K0= 8  K1=16   minDCF(eval) = 0.1850
+  cov=    Full  K0=16  K1= 1   minDCF(eval) = 0.2537
+  cov=    Full  K0=16  K1= 2   minDCF(eval) = 0.2517
+  cov=    Full  K0=16  K1= 4   minDCF(eval) = 0.2015
+  cov=    Full  K0=16  K1= 8   minDCF(eval) = 0.1876
+  cov=    Full  K0=16  K1=16   minDCF(eval) = 0.2025
+
+--- Eval minDCF, covType = Full ---
+        K1= 1 K1= 2 K1= 4 K1= 8 K1=16
+K0= 1   0.4073 0.4101 0.2716 0.2182 0.2331
+K0= 2   0.2985 0.2968 0.2363 0.2120 0.2041
+K0= 4   0.3252 0.3295 0.2462 0.2123 0.2153
+K0= 8   0.2571 0.2529 0.2106 0.1802 0.1850
+K0=16   0.2537 0.2517 0.2015 0.1876 0.2025
+  cov=Diagonal  K0= 1  K1= 1   minDCF(eval) = 0.4098
+  cov=Diagonal  K0= 1  K1= 2   minDCF(eval) = 0.4121
+  cov=Diagonal  K0= 1  K1= 4   minDCF(eval) = 0.2774
+  cov=Diagonal  K0= 1  K1= 8   minDCF(eval) = 0.2767
+  cov=Diagonal  K0= 1  K1=16   minDCF(eval) = 0.2136
+  cov=Diagonal  K0= 2  K1= 1   minDCF(eval) = 0.3663
+  cov=Diagonal  K0= 2  K1= 2   minDCF(eval) = 0.3657
+  cov=Diagonal  K0= 2  K1= 4   minDCF(eval) = 0.2686
+  cov=Diagonal  K0= 2  K1= 8   minDCF(eval) = 0.2722
+  cov=Diagonal  K0= 2  K1=16   minDCF(eval) = 0.2152
+  cov=Diagonal  K0= 4  K1= 1   minDCF(eval) = 0.2498
+  cov=Diagonal  K0= 4  K1= 2   minDCF(eval) = 0.2515
+  cov=Diagonal  K0= 4  K1= 4   minDCF(eval) = 0.1947
+  cov=Diagonal  K0= 4  K1= 8   minDCF(eval) = 0.1940
+  cov=Diagonal  K0= 4  K1=16   minDCF(eval) = 0.1782
+  cov=Diagonal  K0= 8  K1= 1   minDCF(eval) = 0.2536
+  cov=Diagonal  K0= 8  K1= 2   minDCF(eval) = 0.2553
+  cov=Diagonal  K0= 8  K1= 4   minDCF(eval) = 0.1922
+  cov=Diagonal  K0= 8  K1= 8   minDCF(eval) = 0.2026
+  cov=Diagonal  K0= 8  K1=16   minDCF(eval) = 0.1808
+  cov=Diagonal  K0=16  K1= 1   minDCF(eval) = 0.2770
+  cov=Diagonal  K0=16  K1= 2   minDCF(eval) = 0.2790
+  cov=Diagonal  K0=16  K1= 4   minDCF(eval) = 0.2075
+  cov=Diagonal  K0=16  K1= 8   minDCF(eval) = 0.2115
+  cov=Diagonal  K0=16  K1=16   minDCF(eval) = 0.1895
+
+--- Eval minDCF, covType = Diagonal ---
+        K1= 1 K1= 2 K1= 4 K1= 8 K1=16
+K0= 1   0.4098 0.4121 0.2774 0.2767 0.2136
+K0= 2   0.3663 0.3657 0.2686 0.2722 0.2152
+K0= 4   0.2498 0.2515 0.1947 0.1940 0.1782
+K0= 8   0.2536 0.2553 0.1922 0.2026 0.1808
+K0=16   0.2770 0.2790 0.2075 0.2115 0.1895
+
+Best GMM config on EVAL: cov=Diagonal, K0=4, K1=16, minDCF = 0.1782
+Selected config (on validation): cov=Diagonal, K0=8, K1=16, minDCF(eval) = 0.1808
+
+  saved raw and calibrated eval scores under out/lab10/

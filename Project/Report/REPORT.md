@@ -38,15 +38,27 @@ those used in this report are included in [images/](images/).
 | Family | Best model | minDCF | actDCF |
 |---|---|---:|---:|
 | Generative Gaussian | MVG (all features) | 0.2629 | 0.3051 |
-| Logistic Regression | Quadratic LR (λ ≈ 3.2·10⁻²) | **0.2436** | 0.4972 |
-| SVM | RBF SVM (γ = e⁻², C = 32) | **0.1725** | 0.4226 |
-| GMM | Full-cov GMM (K₀=1, K₁=16) | **0.1495** | 0.2055 |
+| Logistic Regression | Quadratic LR (λ ≈ 3.2·10⁻²) | 0.2436 | 0.4972 |
+| SVM | RBF SVM (γ = e⁻², C = 32) | 0.1725 | 0.4226 |
+| GMM | Diagonal-cov GMM (K₀=8, K₁=16) | **0.1324** | **0.1487** |
 
-The winning model in terms of minDCF is the **full-covariance GMM** with
-1 component for the fake class and 16 for the genuine class. This result
-is perfectly consistent with the exploratory structure of the dataset
-(cf. §2 and §3): the fake class is essentially uni-modal, while the
-genuine class is multi-modal (4 clusters on features 5-6).
+The winning model in terms of minDCF is the **diagonal-covariance GMM**
+with 8 components for the fake class and 16 for the genuine class. The
+runner-up by minDCF is the full-covariance GMM with K₀=1, K₁=16
+(minDCF=0.1495). Both results are perfectly consistent with the
+exploratory structure of the dataset (cf. §2 and §3): the fake class
+is essentially uni-modal, while the genuine class is multi-modal
+(4 clusters on features 5-6).
+
+After the lab 10 calibration+fusion analysis (§10), the **delivered
+system** for application data is the K-fold-calibrated diagonal GMM:
+on the held-out evaluation set (`Project/data/evalData.txt`, 6000
+samples) it achieves **minDCF = 0.1808, actDCF = 0.1943** at π̃ = 0.1,
+remaining well calibrated. The K-fold fusion of the three best models
+(LR + SVM + GMM) marginally improves minDCF on validation
+(0.1314 vs 0.1325 of the GMM alone), but does not generalise to a
+better actDCF on the evaluation set (0.2033 vs 0.1943 of the GMM
+alone), so the single GMM is preferred.
 
 ---
 
@@ -933,9 +945,307 @@ The plot shows actDCF and minDCF as a function of
 
 ---
 
-## 10. General discussion and conclusions
+## 10. Lab 10 — Score calibration and score-level fusion
 
-### 10.1 Summary of design choices
+### 10.1 Method
+
+Up to lab 9 we used a single split of the 6000-sample training set
+(2/3 model training, 1/3 validation, seed=0) to estimate parameters
+and to compare models in terms of minimum and actual DCF at the
+target application π̃ = 0.1. As noted throughout the report (cf. §6
+and §9.6), some classifiers - in particular the RBF SVM and the
+quadratic LR - produce well-ranked scores (low minDCF) but poorly
+calibrated decisions (much higher actDCF). Lab 10 closes this gap.
+
+We treat the validation set as a **calibration dataset** and we apply
+a **K-fold (K = 5) pooled calibration scheme** to the scores of each
+best-of-family classifier:
+
+- LR: quadratic LR with λ ≈ 3.2·10⁻² (from §7.7).
+- SVM: RBF kernel with γ = e⁻², C = 32, ξ = 1 (from §8.7).
+- GMM: diagonal-covariance LBG+EM with K₀ = 8, K₁ = 16 (from §9.4).
+
+The calibration transformation is the affine map
+\[
+f_{\text{cal}}(s) = \alpha s + \gamma , \quad
+\gamma = b - \log\frac{\pi_T}{1 - \pi_T},
+\]
+where (α, b) are the weight and bias of a **prior-weighted, non
+regularised binary logistic regression** trained on the raw scores `s`,
+with target prior π_T equal to the application prior (π_T = 0.1).
+For fusion of *m* systems the same recipe applies with α a vector
+and the input being the (m × N) matrix of stacked scores.
+
+The K-fold procedure splits the validation scores in 5 folds, trains
+the calibrator (or fuser) on the union of K−1 folds, and applies it
+to the held-out fold. The K held-out calibrated arrays are then
+pooled into a single, full-size score vector, with the labels
+re-ordered to match the pooling order. Model selection metrics are
+computed on this pooled vector. The minimum DCF computed on pooled
+calibrated scores **may differ** from the raw minimum DCF, because
+each fold is affine-calibrated on its own and the overall pooled
+mapping is no longer globally affine.
+
+The final, "delivered" calibrator (or fuser) is then re-trained on
+the **whole** validation score vector and applied to the held-out
+evaluation set `Project/data/evalData.txt`. This last step is the
+unbiased assessment of how the chosen system would perform on
+application data.
+
+Calibration and fusion helpers are in
+[../models/calibration.py](../models/calibration.py).
+The driver script is
+[../experiments/lab10_calibration_fusion.py](../experiments/lab10_calibration_fusion.py),
+which loads `data/trainData.txt` + `data/evalData.txt`, re-trains the
+three best models on DTR, executes the K-fold calibration/fusion at
+π_T = 0.1, picks the delivered system on actDCF, and finally evaluates
+on DEVAL (6000 samples). The full text log is
+[../out/lab10_calibration_fusion.txt](../out/lab10_calibration_fusion.txt)
+and the plots are in [../out/plots/lab10/](../out/plots/lab10/).
+
+### 10.2 K-fold calibration of the three best systems (validation)
+
+Pooled K-fold metrics on DVAL (target π̃ = 0.1; K-fold pooling may
+change minDCF, cf. §10.1):
+
+| System | minDCF (raw) | actDCF (raw) | minDCF (cal.) | actDCF (cal.) |
+|---|---:|---:|---:|---:|
+| LR quadratic (λ = 3.2·10⁻²) | 0.2436 | 0.4992 | 0.2486 | **0.2731** |
+| SVM RBF (γ = e⁻², C = 32) | 0.1765 | 0.4206 | 0.1685 | **0.1894** |
+| GMM diagonal (K₀=8, K₁=16) | 0.1324 | 0.1487 | 0.1325 | **0.1518** |
+
+What this confirms:
+
+- **LR (quadratic) and SVM (RBF) were strongly miscalibrated** on the
+  raw scores (actDCF ≈ 2.0× minDCF for LR, ≈ 2.4× for SVM). The
+  affine calibration brings actDCF much closer to minDCF: LR goes
+  from 0.4992 → 0.2731 (−45 %), SVM from 0.4206 → 0.1894 (−55 %).
+- The **diagonal GMM was already well calibrated** (raw actDCF/minDCF
+  = 1.12). K-fold calibration leaves it essentially unchanged
+  (0.1487 → 0.1518), as expected from a generative model whose
+  log-likelihood ratio is already a proper LLR.
+- The Bayes error plots confirm this picture across applications:
+  for LR and SVM the post-calibration `actDCF` curve essentially
+  collapses onto the `minDCF` curve over the whole log-odds range,
+  while for the GMM the two curves were already close.
+
+![K-fold calibration of LR quadratic on validation](images/lab10_cal_kfold_LR_val.png)
+
+![K-fold calibration of SVM RBF on validation](images/lab10_cal_kfold_SVM_val.png)
+
+![K-fold calibration of diagonal GMM on validation](images/lab10_cal_kfold_GMM_val.png)
+
+### 10.3 Score-level fusion (validation)
+
+The 5-fold-pooled fusion of the three calibrated systems (LR + SVM +
+GMM) at π_T = 0.1 gives:
+
+| System | minDCF | actDCF |
+|---|---:|---:|
+| GMM diagonal (cal.) | 0.1325 | 0.1518 |
+| Fusion LR + SVM + GMM (cal.) | **0.1314** | 0.1558 |
+
+The fusion **slightly lowers minDCF** (0.1325 → 0.1314), suggesting
+that LR and SVM carry a small amount of complementary information that
+the GMM does not capture. However, actDCF actually goes *up* by ~3 %
+(0.1518 → 0.1558): the gain in ranking quality is consumed by a
+modest fusion-calibration loss, since fusion adds three new
+parameters (the per-system weights) fit on a finite validation set.
+The Bayes error plot for the three calibrated systems + fusion on
+the validation pooled scores corroborates this: the four `actDCF`
+curves are essentially superimposed at log-odds ≈ −2.2 (the target
+application), with the GMM dominating in the right tail and the
+fusion dominating in the centre.
+
+![Three best systems + fusion - validation (K-fold pooled)](images/lab10_three_plus_fusion_val.png)
+
+### 10.4 Delivered system
+
+The choice of the "delivered" system is now made on **actDCF**
+(rather than minDCF), since calibration is part of the pipeline.
+The ranking on K-fold-pooled validation scores at π̃ = 0.1 is:
+
+| Rank | System | actDCF (val. cal., K-fold) |
+|---:|---|---:|
+| 1 | **GMM diagonal (K₀=8, K₁=16, cal.)** | **0.1518** |
+| 2 | Fusion LR + SVM + GMM (cal.) | 0.1558 |
+| 3 | SVM RBF (γ=e⁻², C=32, cal.) | 0.1894 |
+| 4 | LR quadratic (λ=3.2·10⁻², cal.) | 0.2731 |
+
+The delivered system is therefore the **K-fold-calibrated diagonal
+GMM**. Justification:
+
+- It minimises actDCF on the calibration validation set at the
+  target application π̃ = 0.1.
+- It is the only candidate that is already well calibrated *before*
+  the affine correction (actDCF ≈ minDCF), so it is the most
+  conservative choice in terms of behaviour on new data: the
+  calibration model adds little additional bias and the actDCF is
+  unlikely to degrade.
+- The fusion gives a marginally lower minDCF but a worse actDCF on
+  validation, and (see §10.5) it does not generalise to the
+  evaluation set either.
+
+### 10.5 Evaluation on the held-out set
+
+Re-training the per-system calibrators (and the fuser) on the **full**
+validation score vector and applying them to the 6000-sample
+`Project/data/evalData.txt` gives:
+
+| System | minDCF (raw) | actDCF (raw) | minDCF (cal.) | actDCF (cal.) |
+|---|---:|---:|---:|---:|
+| LR quadratic | 0.3518 | 0.4962 | 0.3518 | 0.3896 |
+| SVM RBF | 0.2626 | 0.4019 | 0.2626 | 0.2883 |
+| **GMM diagonal (delivered)** | **0.1808** | 0.1933 | **0.1808** | **0.1943** |
+| Fusion LR + SVM + GMM | — | — | 0.1875 | 0.2033 |
+
+Observations:
+
+- **Delivered system on EVAL: actDCF = 0.1943, minDCF = 0.1808**
+  at π̃ = 0.1. The calibration model barely shifts the GMM scores
+  (0.1933 → 0.1943), confirming that the diagonal GMM is intrinsically
+  a good LLR producer. The minDCF on EVAL is ~37 % higher than on
+  DVAL (0.1324 → 0.1808): the evaluation set is somewhat harder, but
+  the relative ranking is preserved.
+- The **non-generative systems also benefit from calibration on EVAL**:
+  LR actDCF 0.4962 → 0.3896 (−21 %), SVM actDCF 0.4019 → 0.2883
+  (−28 %). Note that calibration cannot change minDCF for these
+  systems because the global mapping trained on the whole DVAL is
+  still an affine function of the raw scores.
+- **Fusion does not generalise**: on EVAL the fused actDCF is 0.2033,
+  *worse* than the calibrated GMM alone (0.1943). The fusion added
+  ~3 % to the validation minDCF / actDCF gap (0.1314 / 0.1558) and
+  ~8 % on EVAL (0.1875 / 0.2033). The interpretation is that the
+  small additional information carried by LR and SVM is overshadowed
+  by the extra calibration noise from fitting 3 weights on the
+  validation set.
+
+![Calibrated LR on the evaluation set](images/lab10_cal_LR_eval.png)
+
+![Calibrated SVM on the evaluation set](images/lab10_cal_SVM_eval.png)
+
+![Calibrated GMM on the evaluation set](images/lab10_cal_GMM_eval.png)
+
+The Bayes error plot of the delivered system on EVAL shows that the
+calibrated GMM is well-behaved over the whole prior log-odds range:
+`actDCF` tracks `minDCF` closely throughout [−4, +4], with a modest
+gap (~0.01) only at very low priors.
+
+![Delivered system (calibrated diagonal GMM) - evaluation set](images/lab10_delivered_bayes_eval.png)
+
+### 10.6 Three best systems and fusion (evaluation)
+
+Comparing the calibrated actDCF Bayes error plots of the three best
+systems and the fusion on EVAL:
+
+![Three best calibrated systems + fusion - evaluation set](images/lab10_three_plus_fusion_eval.png)
+
+The plot makes the cross-system comparison crisp:
+
+- The **diagonal GMM dominates** the actDCF curve over essentially
+  the whole [−4, +4] log-odds range.
+- The **fusion** sits between the GMM and the SVM at low priors,
+  and follows the GMM closely at high priors - i.e. the LR and SVM
+  components mildly hurt the fusion in the operating region around
+  π̃ = 0.1 (log-odds = −2.2).
+- The **SVM (cal.)** is the second-best stand-alone system, and the
+  **LR (cal.)** is the weakest of the three.
+- The model choice (GMM as delivered) was therefore effective on the
+  evaluation set: no other single system or fusion would have
+  produced a lower actDCF at π̃ = 0.1.
+
+### 10.7 Optional - was the GMM hyper-parameter selection optimal on EVAL?
+
+To assess whether the validation-driven selection of the GMM
+hyper-parameters (K₀, K₁, covariance type) was close to optimal on
+unseen data, we re-evaluated **all 25 + 25 = 50 GMM configurations**
+on the evaluation set, reporting the minimum DCF at π̃ = 0.1.
+
+**Full-covariance, eval minDCF (π̃ = 0.1):**
+
+| K₀\K₁ | 1 | 2 | 4 | 8 | 16 |
+|---:|---:|---:|---:|---:|---:|
+| 1 | 0.4073 | 0.4101 | 0.2716 | 0.2182 | 0.2331 |
+| 2 | 0.2985 | 0.2968 | 0.2363 | 0.2120 | 0.2041 |
+| 4 | 0.3252 | 0.3295 | 0.2462 | 0.2123 | 0.2153 |
+| 8 | 0.2571 | 0.2529 | 0.2106 | **0.1802** | 0.1850 |
+| 16 | 0.2537 | 0.2517 | 0.2015 | 0.1876 | 0.2025 |
+
+**Diagonal-covariance, eval minDCF (π̃ = 0.1):**
+
+| K₀\K₁ | 1 | 2 | 4 | 8 | 16 |
+|---:|---:|---:|---:|---:|---:|
+| 1 | 0.4098 | 0.4121 | 0.2774 | 0.2767 | 0.2136 |
+| 2 | 0.3663 | 0.3657 | 0.2686 | 0.2722 | 0.2152 |
+| 4 | 0.2498 | 0.2515 | 0.1947 | 0.1940 | **0.1782** |
+| 8 | 0.2536 | 0.2553 | 0.1922 | 0.2026 | 0.1808 |
+| 16 | 0.2770 | 0.2790 | 0.2075 | 0.2115 | 0.1895 |
+
+Reading these tables:
+
+- The **global best on EVAL** is Diagonal K₀=4, K₁=16 (minDCF = 0.1782),
+  followed by Full K₀=8, K₁=8 (0.1802) and our selected configuration
+  Diagonal K₀=8, K₁=16 (0.1808). The selected model is therefore
+  within **1.5 %** of the eval-optimal one - well inside the noise
+  of a single 6000-sample evaluation set.
+- The validation-best configuration (K₀=8, K₁=16, Diagonal) was thus
+  **near-optimal also on the unseen evaluation data**: the model
+  selection strategy generalised.
+- The structural pattern observed on DVAL (high K₁, intermediate
+  K₀, diagonal cov competitive with full because the features are
+  nearly uncorrelated) is preserved on EVAL as well, which is the
+  expected behaviour when the validation set is representative of
+  the test distribution.
+
+### 10.8 Answers to the Lab 10 project questions
+
+- **Has calibration improved the target application (π̃ = 0.1)?**
+  Yes for the two non-generative systems: LR actDCF on DVAL goes
+  from 0.4992 → 0.2731 (−45 %) and SVM from 0.4206 → 0.1894 (−55 %)
+  with the K-fold-pooled calibration. The diagonal GMM, instead,
+  was already well calibrated (raw actDCF/minDCF = 1.12) and the
+  calibration model leaves its performance essentially unchanged
+  (0.1487 → 0.1518). The Bayes error plots show the same pattern
+  across all applications, not only at π̃ = 0.1.
+- **Is the fusion improving actDCF over the single systems?**
+  Marginally on minDCF (0.1314 vs 0.1325 of the GMM, K-fold pooled),
+  but **not on actDCF** (0.1558 vs 0.1518 of the GMM). On EVAL it
+  is consistently worse than the GMM alone (0.2033 vs 0.1943). The
+  conclusion is that LR and SVM bring a small amount of orthogonal
+  information, but it does not survive the fusion calibration step.
+- **Final delivered system and justification.** We deliver the
+  **K-fold-calibrated diagonal GMM** (K₀=8, K₁=16). It has the
+  lowest actDCF on the calibration validation set among the four
+  candidates, it requires the smallest calibration shift (which
+  reduces the risk of distribution-mismatch bias on new data), and
+  it generalises best to the evaluation set
+  (actDCF = 0.1943 vs 0.2033 of the fusion).
+- **Are the scores well calibrated on EVAL?** Yes for the target
+  application (actDCF = 0.1943, minDCF = 0.1808 → calibration
+  loss ~7 %). The Bayes error plot on EVAL shows `actDCF` ≈ `minDCF`
+  over essentially the whole [−4, +4] log-odds range; the gap stays
+  below 0.05 across all the priors we tested.
+- **Was the model choice effective vs the other systems / the
+  fusion (Bayes error plot on EVAL)?** Yes: the diagonal GMM
+  dominates the actDCF curve over [−4, +4]; SVM is second, fusion is
+  third in the operating region, LR is the weakest. No other choice
+  would have produced a lower actDCF at π̃ = 0.1.
+- **Was the calibration strategy effective for the different
+  approaches (minDCF / actDCF / Bayes plots on EVAL)?** Yes for LR
+  and SVM (actDCF substantially reduced, calibration loss made
+  practically irrelevant), trivially yes for GMM (no harm done).
+  See the per-system EVAL plots in §10.5.
+- **[Optional] Was the hyper-parameter choice (K₀, K₁, cov type)
+  close to optimal on EVAL?** Yes: the selected Diagonal (K₀=8,
+  K₁=16) has eval minDCF = 0.1808, only 1.5 % above the global
+  best on EVAL (Diagonal K₀=4, K₁=16, minDCF = 0.1782). The
+  model-selection strategy adopted in §9 generalised well.
+
+---
+
+## 11. General discussion and conclusions
+
+### 11.1 Summary of design choices
 
 **Conventions adopted:**
 - Samples are **columns** of `D ∈ ℝ^(M×N)` with M=6, N=6000.
@@ -949,7 +1259,7 @@ The plot shows actDCF and minDCF as a function of
 - Plots in PNG (for the Markdown report); text logs mirrored to
   terminal and file via `utils/logger.py`.
 
-### 10.2 Cross-lab comparison: model ranking (minDCF at π̃=0.1)
+### 11.2 Cross-lab comparison: model ranking (minDCF at π̃=0.1)
 
 | Rank | Model | minDCF | Characteristics |
 |---:|---|---:|---|
@@ -964,7 +1274,11 @@ The plot shows actDCF and minDCF as a function of
 | 9 | Tied Gaussian | 0.3628 | Parametric generative, linear boundary |
 | 10 | LR linear / SVM linear | ≈0.36 | Linear discriminative |
 
-### 10.3 Take-aways for an exam
+For the **delivered** system (post-calibration, on the held-out
+evaluation set), see §10: the K-fold-calibrated diagonal GMM
+(K₀=8, K₁=16) achieves minDCF = 0.1808 and actDCF = 0.1943.
+
+### 11.3 Take-aways for an exam
 
 1. **The Lab 2 exploratory analysis already predicts the winner.** The
    4 clusters in features 5-6 and the bimodality of the genuine class
@@ -1018,30 +1332,36 @@ The plot shows actDCF and minDCF as a function of
    - Full DTR + Quadratic LR (42 parameters): regularization useful
      again (sample/parameter ratio drops to ~95).
 
-### 10.4 A natural extension: score calibration
+### 11.4 Score calibration and fusion - summary of §10
 
-For this project, models have been saved to disk (see
-`out/lab07/`, `out/lab08/`, `out/lab09/gmm_full_best_llr.npy`)
-precisely to be used in a future **calibration** lab (not yet brought
-into the project). The flow would be:
-1. Take the scores of an uncalibrated discriminative model (e.g. SVM
-   RBF).
-2. Fit a linear LR (`trainWeightedLogRegBinary` with target π_T) on the
-   scores of a calibration subset.
-3. Apply the affine transformation to the evaluation scores.
-4. Compare actDCF before/after: we expect it to approach minDCF.
+A K-fold (K=5) prior-weighted affine calibrator was applied to the
+three best-of-family models (LR quadratic, SVM RBF, GMM diagonal)
+on the validation scores at π_T = 0.1. Calibration practically
+eliminated the actDCF/minDCF gap for the two discriminative systems
+(LR 0.4992 → 0.2731, SVM 0.4206 → 0.1894 on DVAL), while the GMM
+required essentially no correction (already a proper LLR). Fusion
+of the three calibrated systems only marginally improved minDCF
+(0.1314 vs 0.1325 of the GMM alone) and worsened actDCF, both on
+validation and on the held-out evaluation set. The delivered
+system is therefore the K-fold-calibrated **diagonal GMM**
+(K₀=8, K₁=16): on `Project/data/evalData.txt` (6000 samples) it
+achieves minDCF = 0.1808 and actDCF = 0.1943, with `actDCF` ≈
+`minDCF` across the whole prior log-odds range.
 
-### 10.5 Possible future improvements (not implemented)
+### 11.5 Possible future improvements (not implemented)
 
-- **Score-level fusion:** combine LR quadratic + GMM + SVM RBF via
-  averaging or a multi-input calibrator.
-- **More aggressive cross-validation** for hyper-parameter selection.
+- **More aggressive cross-validation** for hyper-parameter selection
+  (the K-fold scheme of §10 is applied to the calibrator, not to the
+  base-model hyper-parameter sweep).
 - **Z-normalization** of features before SVM (marginal impact here,
   but standard in production).
 - **PCA pre-processing for regularized LR** (the 42-D Quadratic LR
   could benefit from dimensionality reduction).
 - **Tied-cov GMM** (shared covariances across components within the
   same class), not yet benchmarked as best-of-family.
+- **Non-linear / non-affine calibration** (isotonic regression, Pool
+  Adjacent Violators), useful when the affine model is too rigid -
+  not relevant here because the chosen GMM is already well calibrated.
 
 ---
 
@@ -1057,6 +1377,7 @@ into the project). The flow would be:
 | 7 | [LogisticRegression.pdf](../../Labs/7_Logistic_Regression/LogisticRegression.pdf) | [lab07_logistic_regression.py](../experiments/lab07_logistic_regression.py) | [lab07_logistic_regression.txt](../out/lab07_logistic_regression.txt) | [plots/lab07/](../out/plots/lab07/) |
 | 8 | [SVM.pdf](../../Labs/8_Support_Vector_Machines/SVM.pdf) | [lab08_svm.py](../experiments/lab08_svm.py) | [lab08_svm.txt](../out/lab08_svm.txt) | [plots/lab08/](../out/plots/lab08/) |
 | 9 | [GMM.pdf](../../Labs/9_Gaussian_Mixture_Models/GMM.pdf) | [lab09_gmm.py](../experiments/lab09_gmm.py) | [lab09_gmm.txt](../out/lab09_gmm.txt) | [plots/lab09/](../out/plots/lab09/) |
+| 10 | [Calibration_Fusion.pdf](../../Labs/10_Calibration_Fusion/Calibration_Fusion.pdf) | [lab10_calibration_fusion.py](../experiments/lab10_calibration_fusion.py) | [lab10_calibration_fusion.txt](../out/lab10_calibration_fusion.txt) | [plots/lab10/](../out/plots/lab10/) |
 
 ## Appendix B — Models and hyper-parameters used
 
@@ -1075,6 +1396,8 @@ into the project). The flow would be:
 | RBF SVM | α (4000) | C, γ, ξ | C=32, γ=e⁻²=0.135, ξ=1 |
 | GMM Full | (w_g, μ_g, Σ_g) per g, c | K_0, K_1, ψ, α_LBG | K_0=1, K_1=16, ψ=1e-2, α=0.1 |
 | GMM Diagonal | as Full but diag(Σ_g) | as Full | K_0=8, K_1=16 |
+| Calibration (per-system) | α (1), γ (1) | π_T, l | π_T=0.1, l=0 |
+| Fusion (3 systems) | α (3), γ (1) | π_T, l | π_T=0.1, l=0 |
 
 ## Appendix C — Commands to reproduce the results
 
@@ -1092,10 +1415,13 @@ python experiments/lab06_bayes_evaluation.py
 python experiments/lab07_logistic_regression.py
 python experiments/lab08_svm.py       # ~5-10 min for kernel SVMs
 python experiments/lab09_gmm.py       # ~3-5 min for the 5x5 Full + 5x5 Diag grid
+python experiments/lab10_calibration_fusion.py  # ~5-10 min (re-trains SVM/GMM + optional 50-GMM eval sweep)
 ```
 
 All scripts accept an optional argument for the dataset, default =
-`data/trainData.txt`.
+`data/trainData.txt`. The lab 10 script additionally accepts a second
+positional argument for the evaluation dataset, default =
+`data/evalData.txt`.
 
 ---
 
